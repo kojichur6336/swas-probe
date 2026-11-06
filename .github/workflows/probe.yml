@@ -1,0 +1,20 @@
+# 每次运行测满 350 分钟；定时触发只为保证总有一个排队的运行，上一次一结束就接上（concurrency 不取消正在跑的）。
+name: probe
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+concurrency:
+  group: probe
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq iperf3 >/dev/null
+      - run: python3 runner.py
+        env:
+          TARGETS: ${{ secrets.TARGETS }}
+          TOKEN: ${{ secrets.TOKEN }}
