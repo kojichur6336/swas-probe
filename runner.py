@@ -13,7 +13,8 @@ stats = {'ok': 0, 'fail': 0}
 
 
 def iperf(ip):
-    cmd = ['iperf3', '-c', ip, '-p', '5202', '-t', '58', '-b', f'{MBPS}M', '-i', '10', '-J', '--connect-timeout', '3000']
+    # 55 秒：跨境建连、收尾要一两秒，58 秒会超过一分钟，错过下一个整分钟、变成两分钟一段
+    cmd = ['iperf3', '-c', ip, '-p', '5202', '-t', '55', '-b', f'{MBPS}M', '-i', '10', '-J', '--connect-timeout', '3000']
     try:
         j = json.loads(subprocess.run(cmd, capture_output=True, text=True, timeout=80).stdout)
     except Exception as e:
