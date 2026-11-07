@@ -10,7 +10,7 @@ DEADLINE = time.time() + 350 * 60
 
 
 def iperf(ip):
-    cmd = ['iperf3', '-c', ip, '-p', '5202', '-t', '3', '-P', '4', '-J', '--connect-timeout', '5000']
+    cmd = ['iperf3', '-c', ip, '-p', '5202', '-t', '3', '-P', '4', '-J', '--connect-timeout', '3000']
     try:
         j = json.loads(subprocess.run(cmd, capture_output=True, text=True, timeout=25).stdout)
     except Exception as e:
@@ -40,8 +40,10 @@ def report(ip, record):
 
 ok = fail = 0
 while time.time() < DEADLINE:
-    time.sleep(60 - time.time() % 60)
-    for t in TARGETS:
+    base = (time.time() // 60 + 1) * 60
+    for i, t in enumerate(TARGETS):
+        # 第 i 台在第 10*i+7 秒测，避开轻量互测的时间片（第 10*j+2 秒起 3 秒），否则两路同时灌进一台会测出假低速
+        time.sleep(max(0, base + 10 * i + 7 - time.time()))
         r = iperf(t['ip'])
         r.update(ts=int(time.time()), src='github', dst=t['name'], run=RUN)
         if report(t['ip'], r):
